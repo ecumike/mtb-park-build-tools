@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="robots" content="index,follow">
+		<meta name="description" content="">
+		<meta name="keywords" content="">
+		<meta name="geo.country" content="US">
+		<meta name="dcterms.date" content="2025-03-09">
+		<title>MTB kicker calculators</title>
+		<link href="bloodline-bundle.min.css" rel="stylesheet">
+		<script src="bloodline-bundle.min.js"></script>
+
+	<script>
+		function calculateRadius(event) {
+			event.preventDefault(); // Prevent page reload
+
+			let chordLengthFeet = parseFloat(document.getElementById("chordLength").value);
+			let sagittaInches = parseFloat(document.getElementById("sagitta").value);
+
+			if (isNaN(chordLengthFeet) || isNaN(sagittaInches) || chordLengthFeet <= 0 || sagittaInches <= 0) {
+				document.getElementById("result").innerHTML = "Please enter valid positive numbers.";
+				return;
+			}
+
+			// Convert chord length to inches
+			let chordLengthInches = chordLengthFeet * 12;
+
+			// Apply the sagitta formula: R = (c^2 / 8s) + (s / 2)
+			let radiusInches = (Math.pow(chordLengthInches, 2) / (8 * sagittaInches)) + (sagittaInches / 2);
+
+			// Convert to feet
+			let radiusFeet = radiusInches / 12;
+
+			document.getElementById("result").innerHTML = "Radius: " + radiusFeet.toFixed(2) + " feet";
+		}
+	</script>
+</head>
+<body class="helvetica pa3">
+	<h2>Circle Radius Calculator</h2>
+	<form onsubmit="calculateRadius(event)">
+		<div class="">
+			<label class="db b mb1" for="chordLength">Line Distance (feet):</label>
+			<input class="dib mw4" type="number" id="chordLength" name="chordLength" step="0.1" required>
+		</div>
+		<div class="mt3">
+			<label class="db b mb1" for="sagitta">Arc Curve Distance (inches):</label>
+			<input class="dib mw4" type="number" id="sagitta" name="sagitta" step="0.1" required>
+		</div>
+		<div class="mt3"><button class="b--blue ba bg-blue bl-animate-all br2 bw1 dib hover-b--dark-blue hover-bg-dark-blue hover-white mb3 mr3 ph3 pointer pv2 white"type="submit">Calculate Radius</button></div>
+	</form>
+
+	<h3 id="result"></h3>
+
+</body>
+</html>

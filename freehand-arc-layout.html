@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Arc Offset Calculator</title>
+  <style>
+	body {
+	  font-family: sans-serif;
+	  padding: 2rem;
+	}
+	input {
+	  margin: 0.5rem;
+	}
+	table {
+	  border-collapse: collapse;
+	  margin-top: 1rem;
+	}
+	th, td {
+	  border: 1px solid #ccc;
+	  padding: 0.5rem;
+	  text-align: right;
+	}
+  </style>
+</head>
+<body>
+  <h1>Arc Offset Calculator</h1>
+  <label>Chord Length (ft): <input type="number" id="chord" value="16.5" step="0.1"></label><br>
+  <label>Radius (ft): <input type="number" id="radius" value="20" step="0.1"></label><br>
+  <label>Point Interval (ft): <input type="number" id="interval" value="1" step="0.1"></label><br>
+  <button onclick="calculateOffsets()">Calculate</button>
+
+  <table id="resultTable">
+	<thead>
+	  <tr>
+		<th>Distance from End (ft)</th>
+		<th>Offset from Chord (in)</th>
+	  </tr>
+	</thead>
+	<tbody></tbody>
+  </table>
+
+  <script>
+	function calculateOffsets() {
+	  const chord = parseFloat(document.getElementById('chord').value);
+	  const radius = parseFloat(document.getElementById('radius').value);
+	  const interval = parseFloat(document.getElementById('interval').value);
+	  const halfChord = chord / 2;
+	  const sagitta = radius - Math.sqrt(radius * radius - halfChord * halfChord);
+	  const numSteps = Math.floor(chord / interval);
+
+	  const tbody = document.querySelector("#resultTable tbody");
+	  tbody.innerHTML = ""; // clear existing rows
+
+	  for (let i = 0; i <= numSteps; i++) {
+		const x = i * interval;
+		const fromCenter = Math.abs(x - halfChord);
+		const verticalOffset = sagitta - (radius - Math.sqrt(radius * radius - fromCenter * fromCenter));
+		const row = tbody.insertRow();
+		row.insertCell().textContent = x.toFixed(2);
+		row.insertCell().textContent = (verticalOffset * 12).toFixed(2);
+	  }
+	}
+  </script>
+</body>
+</html>
