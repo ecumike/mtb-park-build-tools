@@ -1,159 +1,206 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Trajectory Calculator</title>
-	<style>
-		body {
-			font-family: Arial, sans-serif;
-			text-align: center;
-			margin: 20px;
-		}
-		input {
-			padding: 8px;
-			margin: 5px;
-			width: 80px;
-		}
-		button {
-			padding: 10px;
-			margin-top: 10px;
-			cursor: pointer;
-		}
-		canvas {
-			border: 1px solid black;
-			margin-top: 20px;
-		}
-	</style>
-	<script>
-		function drawTrajectory(event) {
-			event.preventDefault(); // Prevent page reload
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trajectory Calculator (Closed-Form)</title>
+  <style>
+	body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+	input { padding: 8px; margin: 5px; width: 90px; }
+	button { padding: 10px; margin-top: 10px; cursor: pointer; }
+	canvas { border: 1px solid #000; margin-top: 20px; display: block; margin-left: auto; margin-right: auto; }
+	.layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; margin-top: 20px; }
+	@media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
+	.table-wrap { max-height: 500px; overflow: auto; border: 1px solid #ccc; }
+	table { border-collapse: collapse; width: 100%; min-width: 280px; }
+	thead th { position: sticky; top: 0; background: #f7f7f7; border-bottom: 1px solid #ccc; z-index: 1; }
+	th, td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: right; font-variant-numeric: tabular-nums; }
+	th:first-child, td:first-child { text-align: left; }
+	.note { font-size: 12px; color: #666; margin-top: 6px; }
+  </style>
+  <script>
+	function drawTrajectory(event) {
+	  event.preventDefault(); // no reload
 
-			// Get input values
-			let angle = parseFloat(document.getElementById("angle").value);
-			let speedMPH = parseFloat(document.getElementById("speed").value);
-			let heightFeet = parseFloat(document.getElementById("height").value);
+	  // Inputs
+	  const angleDeg = parseFloat(document.getElementById("angle").value);
+	  const speedMPH = parseFloat(document.getElementById("speed").value);
+	  const heightFt = parseFloat(document.getElementById("height").value);
 
-			if (isNaN(angle) || isNaN(speedMPH) || isNaN(heightFeet) || angle <= 0 || speedMPH <= 0 || heightFeet < 0) {
-				alert("Please enter valid positive numbers.");
-				return;
-			}
+	  if (
+		isNaN(angleDeg) || isNaN(speedMPH) || isNaN(heightFt) ||
+		angleDeg <= 0 || speedMPH <= 0 || heightFt < 0
+	  ) {
+		alert("Please enter valid positive numbers.");
+		return;
+	  }
 
-			// Convert values
-			let speedMPS = speedMPH * 0.44704; // Convert MPH to meters per second
-			let heightMeters = heightFeet * 0.3048; // Convert feet to meters
+	  // Unit conversions
+	  const speedMPS = speedMPH * 0.44704;      // mph -> m/s
+	  const h_m = heightFt * 0.3048;            // ft  -> m
+	  const a = angleDeg * Math.PI / 180;       // deg -> rad
+	  const g = 9.81;                           // m/s^2
 
-			// Convert angle to radians
-			let radians = angle * (Math.PI / 180);
+	  const cosA = Math.cos(a);
+	  const sinA = Math.sin(a);
+	  const tanA = Math.tan(a);
+	  const V0 = speedMPS;
+	  const V0sq = V0 * V0;
 
-			// Constants
-			let g = 9.81; // Gravity (m/s^2)
+	  if (cosA <= 0) {
+		alert("Angle too steep—horizontal velocity must be positive.");
+		return;
+	  }
 
-			// Initial velocity components
-			let vX = speedMPS * Math.cos(radians);
-			let vY = speedMPS * Math.sin(radians);
+	  // Components
+	  const vX = V0 * cosA;
+	  const vY = V0 * sinA;
 
-			// Time of flight calculation
-			let t1 = (-vY + Math.sqrt(vY ** 2 + 2 * g * heightMeters)) / -g;
-			let t2 = (-vY - Math.sqrt(vY ** 2 + 2 * g * heightMeters)) / -g;
-			let flightTime = Math.max(t1, t2); // Choose the positive time
+	  // Time of flight (positive root of y(t)=0 for launch height h_m)
+	  // t = (vY + sqrt(vY^2 + 2 g h)) / g
+	  const flightTime = (vY + Math.sqrt(vY * vY + 2 * g * h_m)) / g;
 
-			// Maximum height calculation
-			let maxHeightMeters = heightMeters + (vY ** 2) / (2 * g);
-			let maxHeightFeet = maxHeightMeters / 0.3048; // Convert back to feet
+	  // Range (horizontal distance to ground)
+	  const rangeMeters = vX * flightTime;
+	  const rangeFeet = rangeMeters / 0.3048;
 
-			// Total distance traveled (range)
-			let rangeMeters = vX * flightTime;
-			let rangeFeet = rangeMeters / 0.3048; // Convert back to feet
+	  // Max height (apex)
+	  const maxHeightMeters = h_m + (vY * vY) / (2 * g);
+	  const maxHeightFeet = maxHeightMeters / 0.3048;
 
-			// Get canvas and context
-			let canvas = document.getElementById("trajectoryCanvas");
-			let ctx = canvas.getContext("2d");
+	  // Closed-form y(x) in meters:
+	  // y(x) = h + x*tan(a) - g*x^2 / (2 V0^2 cos^2(a))
+	  function y_at_x_feet(xFeet) {
+		const x_m = xFeet * 0.3048;
+		const y_m = h_m + x_m * tanA - (g * x_m * x_m) / (2 * V0sq * cosA * cosA);
+		return y_m / 0.3048; // -> feet
+	  }
 
-			// Clear canvas
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
+	  // === Canvas drawing (step in x, using closed-form) ===
+	  const canvas = document.getElementById("trajectoryCanvas");
+	  const ctx = canvas.getContext("2d");
+	  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-			// Scale factors (pixels per foot)
-			let scaleX = (canvas.width - 100) / (rangeFeet + 5);
-			let scaleY = (canvas.height - 100) / (maxHeightFeet + 5);
+	  const padL = 50, padB = 50, padR = 20, padT = 20;
+	  const scaleX = (canvas.width - (padL + padR)) / (rangeFeet + 5);
+	  const scaleY = (canvas.height - (padT + padB)) / (maxHeightFeet + 5);
 
-			// Draw axes
-			ctx.beginPath();
-			ctx.moveTo(50, canvas.height - 50);
-			ctx.lineTo(canvas.width - 20, canvas.height - 50); // X-axis
-			ctx.moveTo(50, canvas.height - 50);
-			ctx.lineTo(50, 20); // Y-axis
-			ctx.strokeStyle = "black";
-			ctx.lineWidth = 2;
-			ctx.stroke();
+	  // Axes
+	  ctx.beginPath();
+	  ctx.moveTo(padL, canvas.height - padB);
+	  ctx.lineTo(canvas.width - padR, canvas.height - padB); // X
+	  ctx.moveTo(padL, canvas.height - padB);
+	  ctx.lineTo(padL, padT); // Y
+	  ctx.strokeStyle = "black";
+	  ctx.lineWidth = 2;
+	  ctx.stroke();
 
-			// Draw tick marks and labels on X-axis (every 1 foot)
-			ctx.fillStyle = "black";
-			ctx.font = "12px Arial";
-			for (let x = 0; x <= rangeFeet; x += 1) {
-				let canvasX = 50 + x * scaleX;
-				ctx.beginPath();
-				ctx.moveTo(canvasX, canvas.height - 45);
-				ctx.lineTo(canvasX, canvas.height - 55);
-				ctx.stroke();
-				if (x % 5 === 0) ctx.fillText(x + "ft", canvasX - 10, canvas.height - 30);
-			}
+	  // X ticks (every 1 ft; label every 5 ft)
+	  ctx.fillStyle = "black";
+	  ctx.font = "12px Arial";
+	  for (let x = 0; x <= rangeFeet; x += 1) {
+		const cx = padL + x * scaleX;
+		ctx.beginPath();
+		ctx.moveTo(cx, canvas.height - padB + 5);
+		ctx.lineTo(cx, canvas.height - padB - 5);
+		ctx.stroke();
+		if (x % 5 === 0) ctx.fillText(x + "ft", cx - 10, canvas.height - padB + 20);
+	  }
 
-			// Draw tick marks and labels on Y-axis (every 1 foot)
-			for (let y = 0; y <= maxHeightFeet; y += 1) {
-				let canvasY = canvas.height - (y * scaleY) - 50;
-				ctx.beginPath();
-				ctx.moveTo(45, canvasY);
-				ctx.lineTo(55, canvasY);
-				ctx.stroke();
-				if (y % 5 === 0) ctx.fillText(y + "ft", 10, canvasY + 5);
-			}
+	  // Y ticks (every 1 ft; label every 5 ft)
+	  for (let y = 0; y <= maxHeightFeet; y += 1) {
+		const cy = canvas.height - (y * scaleY) - padB;
+		ctx.beginPath();
+		ctx.moveTo(padL - 5, cy);
+		ctx.lineTo(padL + 5, cy);
+		ctx.stroke();
+		if (y % 5 === 0) ctx.fillText(y + "ft", 10, cy + 4);
+	  }
 
-			// Draw trajectory
-			ctx.beginPath();
-			ctx.strokeStyle = "blue";
-			ctx.lineWidth = 2;
-			ctx.moveTo(50, canvas.height - (heightFeet * scaleY) - 50);
+	  // Trajectory curve with closed-form y(x)
+	  ctx.beginPath();
+	  ctx.strokeStyle = "blue";
+	  ctx.lineWidth = 2;
 
-			let timeStep = flightTime / 100;
-			for (let t = 0; t <= flightTime; t += timeStep) {
-				let x = vX * t;
-				let y = heightMeters + vY * t - 0.5 * g * t ** 2;
+	  const stepFeet = Math.max(0.25, rangeFeet / 400); // smooth curve
+	  for (let xf = 0; xf <= rangeFeet; xf += stepFeet) {
+		let yft = y_at_x_feet(xf);
+		if (yft < 0) yft = 0; // clamp to ground
+		const cx = padL + xf * scaleX;
+		const cy = canvas.height - (yft * scaleY) - padB;
+		if (xf === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+	  }
+	  ctx.stroke();
 
-				let canvasX = 50 + (x / 0.3048) * scaleX;
-				let canvasY = canvas.height - ((y / 0.3048) * scaleY) - 50;
+	  // Summary numbers
+	  document.getElementById("result").innerHTML =
+		`Max Height: ${maxHeightFeet.toFixed(2)} ft<br>` +
+		`Total Distance: ${rangeFeet.toFixed(2)} ft<br>` +
+		`Time of Flight: ${flightTime.toFixed(2)} s`;
 
-				ctx.lineTo(canvasX, canvasY);
-			}
-			ctx.stroke();
+	  // === Per-foot table (closed-form y(x)) ===
+	  const tbody = document.getElementById("dataTableBody");
+	  tbody.innerHTML = "";
 
-			// Display calculated values
-			document.getElementById("result").innerHTML =
-				`Max Height: ${maxHeightFeet.toFixed(2)} ft<br>` +
-				`Total Distance: ${rangeFeet.toFixed(2)} ft<br>` +
-				`Time of Flight: ${flightTime.toFixed(2)} s`;
-		}
-	</script>
+	  const maxWholeFeet = Math.floor(rangeFeet);
+	  for (let xf = 0; xf <= maxWholeFeet; xf += 1) {
+		let yft = y_at_x_feet(xf);
+		if (yft < 0) yft = 0;
+		const tr = document.createElement("tr");
+		tr.innerHTML = `<td>${xf}</td><td>${yft.toFixed(2)}</td>`;
+		tbody.appendChild(tr);
+	  }
+
+	  // Precise landing row if range isn't an integer
+	  if (rangeFeet > maxWholeFeet) {
+		const tr = document.createElement("tr");
+		tr.innerHTML = `<td>${rangeFeet.toFixed(2)}</td><td>0.00</td>`;
+		tbody.appendChild(tr);
+	  }
+	}
+  </script>
 </head>
 <body>
 
-	<h2>Projectile Trajectory Calculator</h2>
-	<form onsubmit="drawTrajectory(event)">
-		<label for="angle">Angle (degrees):</label>
-		<input type="number" id="angle" name="angle" step="0.1" required>
-		<br>
-		<label for="speed">Speed (MPH):</label>
-		<input type="number" id="speed" name="speed" step="0.1" required>
-		<br>
-		<label for="height">Takeoff Height (feet):</label>
-		<input type="number" id="height" name="height" step="0.1" required>
-		<br>
-		<button type="submit">Calculate & Draw</button>
-	</form>
+  <h2>Projectile Trajectory Calculator</h2>
+  <form onsubmit="drawTrajectory(event)">
+	<label for="angle">Angle (degrees):</label>
+	<input type="number" id="angle" name="angle" step="0.1" required />
+	<br />
+	<label for="speed">Speed (MPH):</label>
+	<input type="number" id="speed" name="speed" step="0.1" required />
+	<br />
+	<label for="height">Takeoff Height (feet):</label>
+	<input type="number" id="height" name="height" step="0.1" required />
+	<br />
+	<button type="submit">Calculate &amp; Draw</button>
+  </form>
 
-	<h3 id="result"></h3>
+  <h3 id="result"></h3>
 
+  <div class="layout">
 	<canvas id="trajectoryCanvas" width="800" height="500"></canvas>
+
+	<div>
+	  <h3>Height by Horizontal Distance</h3>
+	  <div class="table-wrap">
+		<table aria-label="Height per foot of horizontal distance">
+		  <thead>
+			<tr>
+			  <th>Distance (ft)</th>
+			  <th>Height (ft)</th>
+			</tr>
+		  </thead>
+		  <tbody id="dataTableBody"></tbody>
+		</table>
+	  </div>
+	  <div class="note">
+		Heights use the closed-form trajectory with launch height:
+		<span style="font-family: serif;">y(x) = h + x·tan(α) − g·x² / (2 V₀² cos²(α))</span>.
+		Final row shows exact landing distance with 0.00&nbsp;ft height.
+	  </div>
+	</div>
+  </div>
 
 </body>
 </html>
