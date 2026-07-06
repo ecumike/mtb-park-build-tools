@@ -12,12 +12,14 @@
 			border-radius: 4px;
 			padding: 1.5rem;
 			text-decoration: none;
+			color: inherit;
 			display: block;
 			transition: border-color 0.15s, box-shadow 0.15s;
 		}
 		.tool-card:hover {
 			border-color: #357edd;
 			box-shadow: 0 2px 8px rgba(53,126,221,0.15);
+			text-decoration: none;
 		}
 	</style>
 </head>
@@ -28,22 +30,22 @@
 
 	<div class="flex flex-wrap nl3 nr3">
 
-		<div class="w-third-l w-50-m w-100 ph3 mb4">
-			<a href="circle-radius-calculator.html" class="tool-card">
+		<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
+			<a href="circle-radius-calculator.html" class="tool-card flex-auto">
 				<h2 class="f4 fw6 dark-gray mt0 mb2">Circle Radius Calculator</h2>
 				<p class="f6 gray mt0 mb0">Find the radius of a circular arc from its chord length and sag (rise) depth.</p>
 			</a>
 		</div>
 
-		<div class="w-third-l w-50-m w-100 ph3 mb4">
-			<a href="trajectory-calculator.html" class="tool-card">
+		<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
+			<a href="trajectory-calculator.html" class="tool-card flex-auto">
 				<h2 class="f4 fw6 dark-gray mt0 mb2">Projectile Trajectory Calculator</h2>
 				<p class="f6 gray mt0 mb0">Plot a rider's airborne trajectory by speed, launch angle, and takeoff height.</p>
 			</a>
 		</div>
 
-		<div class="w-third-l w-50-m w-100 ph3 mb4">
-			<a href="freehand-arc-layout.html" class="tool-card">
+		<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
+			<a href="freehand-arc-layout.html" class="tool-card flex-auto">
 				<h2 class="f4 fw6 dark-gray mt0 mb2">Arc Offset Calculator</h2>
 				<p class="f6 gray mt0 mb0">Generate offset measurements along an arc for laying out curved features in the field.</p>
 			</a>
