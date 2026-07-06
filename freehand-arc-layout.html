@@ -1,66 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Arc Offset Calculator</title>
-  <style>
-	body {
-	  font-family: sans-serif;
-	  padding: 2rem;
-	}
-	input {
-	  margin: 0.5rem;
-	}
-	table {
-	  border-collapse: collapse;
-	  margin-top: 1rem;
-	}
-	th, td {
-	  border: 1px solid #ccc;
-	  padding: 0.5rem;
-	  text-align: right;
-	}
-  </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Arc Offset Calculator — MTB Park Calculators</title>
+	<link href="bloodline-bundle.min.css" rel="stylesheet">
+	<script src="bloodline-bundle.min.js"></script>
+	<style>
+		.nav-link { display:block; padding:.4rem .6rem; border-radius:3px; color:#ccc; text-decoration:none; font-size:.875rem; }
+		.nav-link:hover { background:rgba(255,255,255,0.12); color:#fff; }
+		.nav-link.active { background:#fff; color:#111; font-weight:700; }
+		.table-wrap { max-height:500px; overflow:auto; border:1px solid #ddd; border-radius:3px; }
+		table { border-collapse:collapse; width:100%; }
+		thead th { position:sticky; top:0; background:#f7f7f7; border-bottom:1px solid #ccc; z-index:1; }
+		th, td { padding:8px 10px; border-bottom:1px solid #eee; text-align:right; font-variant-numeric:tabular-nums; }
+		th:first-child, td:first-child { text-align:left; }
+	</style>
+	<script>
+		function calculateOffsets() {
+			const chord = parseFloat(document.getElementById('chord').value);
+			const radius = parseFloat(document.getElementById('radius').value);
+			const interval = parseFloat(document.getElementById('interval').value);
+			const halfChord = chord / 2;
+			const sagitta = radius - Math.sqrt(radius * radius - halfChord * halfChord);
+			const numSteps = Math.floor(chord / interval);
+			const tbody = document.querySelector("#resultTable tbody");
+			tbody.innerHTML = "";
+			for (let i = 0; i <= numSteps; i++) {
+				const x = i * interval;
+				const fromCenter = Math.abs(x - halfChord);
+				const verticalOffset = sagitta - (radius - Math.sqrt(radius * radius - fromCenter * fromCenter));
+				const row = tbody.insertRow();
+				row.insertCell().textContent = x.toFixed(2);
+				row.insertCell().textContent = (verticalOffset * 12).toFixed(2);
+			}
+		}
+	</script>
 </head>
-<body>
-  <a href="index.html" style="display:block;margin-bottom:1rem;color:#357edd;text-decoration:none;font-size:.875rem;">&larr; All calculators</a>
-  <h1>Arc Offset Calculator</h1>
-  <label>Chord Length (ft): <input type="number" id="chord" value="16.5" step="0.1"></label><br>
-  <label>Radius (ft): <input type="number" id="radius" value="20" step="0.1"></label><br>
-  <label>Point Interval (ft): <input type="number" id="interval" value="1" step="0.1"></label><br>
-  <button onclick="calculateOffsets()">Calculate</button>
+<body class="helvetica" style="margin:0;">
+<div style="display:flex;min-height:100vh;">
 
-  <table id="resultTable">
-	<thead>
-	  <tr>
-		<th>Distance from End (ft)</th>
-		<th>Offset from Chord (in)</th>
-	  </tr>
-	</thead>
-	<tbody></tbody>
-  </table>
+	<nav style="width:210px;min-width:210px;background:#111;padding:1.5rem 1rem;box-sizing:border-box;">
+		<a href="index.html" style="display:block;font-weight:700;font-size:.9rem;color:#fff;text-decoration:none;margin-bottom:1.5rem;">MTB Park Calculators</a>
+		<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.08em;margin-bottom:.4rem;">Tools</div>
+		<ul style="list-style:none;padding:0;margin:0;">
+			<li style="margin-bottom:.2rem;"><a href="circle-radius-calculator.html" class="nav-link">Circle Radius Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="trajectory-calculator.html" class="nav-link">Trajectory Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="freehand-arc-layout.html" class="nav-link active">Arc Offset Calculator</a></li>
+		</ul>
+	</nav>
 
-  <script>
-	function calculateOffsets() {
-	  const chord = parseFloat(document.getElementById('chord').value);
-	  const radius = parseFloat(document.getElementById('radius').value);
-	  const interval = parseFloat(document.getElementById('interval').value);
-	  const halfChord = chord / 2;
-	  const sagitta = radius - Math.sqrt(radius * radius - halfChord * halfChord);
-	  const numSteps = Math.floor(chord / interval);
+	<main class="pa4" style="flex:1;overflow:auto;">
+		<h2 class="f2 fw6 dark-gray mt0 mb4">Arc Offset Calculator</h2>
+		<form onsubmit="event.preventDefault(); calculateOffsets();">
+			<div class="mb3">
+				<label class="db b mb1" for="chord">Chord Length (ft)</label>
+				<input class="dib mw4" type="number" id="chord" value="16.5" step="0.1">
+			</div>
+			<div class="mb3">
+				<label class="db b mb1" for="radius">Radius (ft)</label>
+				<input class="dib mw4" type="number" id="radius" value="20" step="0.1">
+			</div>
+			<div class="mb3">
+				<label class="db b mb1" for="interval">Point Interval (ft)</label>
+				<input class="dib mw4" type="number" id="interval" value="1" step="0.1">
+			</div>
+			<div class="mt3">
+				<button class="b--blue ba bg-blue bl-animate-all br2 bw1 dib hover-b--dark-blue hover-bg-dark-blue hover-white ph3 pointer pv2 white" type="submit">Calculate Offsets</button>
+			</div>
+		</form>
 
-	  const tbody = document.querySelector("#resultTable tbody");
-	  tbody.innerHTML = ""; // clear existing rows
+		<div class="mt4" style="max-width:400px;">
+			<div class="table-wrap">
+				<table id="resultTable" aria-label="Arc offset measurements">
+					<thead>
+						<tr>
+							<th>Distance from End (ft)</th>
+							<th>Offset from Chord (in)</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</div>
+	</main>
 
-	  for (let i = 0; i <= numSteps; i++) {
-		const x = i * interval;
-		const fromCenter = Math.abs(x - halfChord);
-		const verticalOffset = sagitta - (radius - Math.sqrt(radius * radius - fromCenter * fromCenter));
-		const row = tbody.insertRow();
-		row.insertCell().textContent = x.toFixed(2);
-		row.insertCell().textContent = (verticalOffset * 12).toFixed(2);
-	  }
-	}
-  </script>
+</div>
 </body>
 </html>

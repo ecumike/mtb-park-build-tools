@@ -1,59 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<meta name="robots" content="index,follow">
-		<meta name="description" content="">
-		<meta name="keywords" content="">
-		<meta name="geo.country" content="US">
-		<meta name="dcterms.date" content="2025-03-09">
-		<title>MTB kicker calculators</title>
-		<link href="bloodline-bundle.min.css" rel="stylesheet">
-		<script src="bloodline-bundle.min.js"></script>
-
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Circle Radius Calculator — MTB Park Calculators</title>
+	<link href="bloodline-bundle.min.css" rel="stylesheet">
+	<script src="bloodline-bundle.min.js"></script>
+	<style>
+		.nav-link { display:block; padding:.4rem .6rem; border-radius:3px; color:#ccc; text-decoration:none; font-size:.875rem; }
+		.nav-link:hover { background:rgba(255,255,255,0.12); color:#fff; }
+		.nav-link.active { background:#fff; color:#111; font-weight:700; }
+	</style>
 	<script>
 		function calculateRadius(event) {
-			event.preventDefault(); // Prevent page reload
-
+			event.preventDefault();
 			let chordLengthFeet = parseFloat(document.getElementById("chordLength").value);
 			let sagittaInches = parseFloat(document.getElementById("sagitta").value);
-
 			if (isNaN(chordLengthFeet) || isNaN(sagittaInches) || chordLengthFeet <= 0 || sagittaInches <= 0) {
 				document.getElementById("result").innerHTML = "Please enter valid positive numbers.";
 				return;
 			}
-
-			// Convert chord length to inches
 			let chordLengthInches = chordLengthFeet * 12;
-
-			// Apply the sagitta formula: R = (c^2 / 8s) + (s / 2)
 			let radiusInches = (Math.pow(chordLengthInches, 2) / (8 * sagittaInches)) + (sagittaInches / 2);
-
-			// Convert to feet
 			let radiusFeet = radiusInches / 12;
-
 			document.getElementById("result").innerHTML = "Radius: " + radiusFeet.toFixed(2) + " feet";
 		}
 	</script>
 </head>
-<body class="helvetica pa3">
-	<a href="index.html" class="f6 link blue mb4 db">&larr; All calculators</a>
-	<h2>Circle Radius Calculator</h2>
-	<form onsubmit="calculateRadius(event)">
-		<div class="">
-			<label class="db b mb1" for="chordLength">Distance Between Arc Ends (ft):</label>
-			<input class="dib mw4" type="number" id="chordLength" name="chordLength" step="0.1" required>
-		</div>
-		<div class="mt3">
-			<label class="db b mb1" for="sagitta">Arc Depth / Sag (inches)</label>
-			<input class="dib mw4" type="number" id="sagitta" name="sagitta" step="0.1" required>
-		</div>
-		<div class="mt3"><button class="b--blue ba bg-blue bl-animate-all br2 bw1 dib hover-b--dark-blue hover-bg-dark-blue hover-white mb3 mr3 ph3 pointer pv2 white"type="submit">Calculate radius</button></div>
-	</form>
+<body class="helvetica" style="margin:0;">
+<div style="display:flex;min-height:100vh;">
 
-	<h3 id="result"></h3>
+	<nav style="width:210px;min-width:210px;background:#111;padding:1.5rem 1rem;box-sizing:border-box;">
+		<a href="index.html" style="display:block;font-weight:700;font-size:.9rem;color:#fff;text-decoration:none;margin-bottom:1.5rem;">MTB Park Calculators</a>
+		<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.08em;margin-bottom:.4rem;">Tools</div>
+		<ul style="list-style:none;padding:0;margin:0;">
+			<li style="margin-bottom:.2rem;"><a href="circle-radius-calculator.html" class="nav-link active">Circle Radius Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="trajectory-calculator.html" class="nav-link">Trajectory Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="freehand-arc-layout.html" class="nav-link">Arc Offset Calculator</a></li>
+		</ul>
+	</nav>
 
+	<main class="pa4" style="flex:1;overflow:auto;">
+		<h2 class="f2 fw6 dark-gray mt0 mb4">Circle Radius Calculator</h2>
+		<form onsubmit="calculateRadius(event)">
+			<div class="mb3">
+				<label class="db b mb1" for="chordLength">Distance Between Arc Ends (ft)</label>
+				<input class="dib mw4" type="number" id="chordLength" name="chordLength" step="0.1" required>
+			</div>
+			<div class="mb3">
+				<label class="db b mb1" for="sagitta">Arc Depth / Sag (inches)</label>
+				<input class="dib mw4" type="number" id="sagitta" name="sagitta" step="0.1" required>
+			</div>
+			<div class="mt3">
+				<button class="b--blue ba bg-blue bl-animate-all br2 bw1 dib hover-b--dark-blue hover-bg-dark-blue hover-white ph3 pointer pv2 white" type="submit">Calculate Radius</button>
+			</div>
+		</form>
+		<h3 id="result" class="f4 mt4"></h3>
+	</main>
+
+</div>
 </body>
 </html>

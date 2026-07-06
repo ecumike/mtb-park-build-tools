@@ -1,216 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Trajectory Calculator (Closed-Form)</title>
-  <style>
-	body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-	form {
-		margin: 0 auto;
-		width: 270px;
-	}
-	label {
-		display: inline-block;
-		width: 140px;
-		text-align: right;
-	}
-	input { padding: 8px; margin: 5px; width: 90px; }
-	button { display: block; width: 263px; padding: 10px; margin: 10px 7px 10px auto; cursor: pointer; }
-	canvas { margin-top: 20px; display: block; margin-left: auto; margin-right: auto; }
-	.layout { display: grid; grid-template-columns: 3fr 1fr; align-items: start; margin-top: 20px; }
-	@media (max-width: 1000px) { .layout { grid-template-columns: 1fr; } }
-	.table-wrap { max-height: 500px; overflow: auto; border: 1px solid #ccc; }
-	table { border-collapse: collapse; width: 100%; }
-	thead th { position: sticky; top: 0; background: #f7f7f7; border-bottom: 1px solid #ccc; z-index: 1; }
-	th, td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: right; font-variant-numeric: tabular-nums; }
-	th:first-child, td:first-child { text-align: left; }
-	.note { font-size: 12px; color: #666; margin-top: 6px; }
-  </style>
-  <script>
-	function drawTrajectory(event) {
-	  event.preventDefault(); // no reload
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Trajectory Calculator — MTB Park Calculators</title>
+	<link href="bloodline-bundle.min.css" rel="stylesheet">
+	<script src="bloodline-bundle.min.js"></script>
+	<style>
+		.nav-link { display:block; padding:.4rem .6rem; border-radius:3px; color:#ccc; text-decoration:none; font-size:.875rem; }
+		.nav-link:hover { background:rgba(255,255,255,0.12); color:#fff; }
+		.nav-link.active { background:#fff; color:#111; font-weight:700; }
+		.chart-layout { display:grid; grid-template-columns: 3fr 1fr; align-items:start; gap:1.5rem; margin-top:1.5rem; }
+		@media (max-width: 1000px) { .chart-layout { grid-template-columns: 1fr; } }
+		.table-wrap { max-height:500px; overflow:auto; border:1px solid #ddd; border-radius:3px; }
+		table { border-collapse:collapse; width:100%; }
+		thead th { position:sticky; top:0; background:#f7f7f7; border-bottom:1px solid #ccc; z-index:1; }
+		th, td { padding:8px 10px; border-bottom:1px solid #eee; text-align:right; font-variant-numeric:tabular-nums; }
+		th:first-child, td:first-child { text-align:left; }
+		canvas { display:block; max-width:100%; }
+	</style>
+	<script>
+		function drawTrajectory(event) {
+			event.preventDefault();
 
-	  // Inputs
-	  const angleDeg = parseFloat(document.getElementById("angle").value);
-	  const speedMPH = parseFloat(document.getElementById("speed").value);
-	  const heightFt = parseFloat(document.getElementById("height").value)/12;
+			const angleDeg = parseFloat(document.getElementById("angle").value);
+			const speedMPH = parseFloat(document.getElementById("speed").value);
+			const heightFt = parseFloat(document.getElementById("height").value) / 12;
 
-	  if (
-		isNaN(angleDeg) || isNaN(speedMPH) || isNaN(heightFt) ||
-		angleDeg <= 0 || speedMPH <= 0 || heightFt < 0
-	  ) {
-		alert("Please enter valid positive numbers.");
-		return;
-	  }
+			if (isNaN(angleDeg) || isNaN(speedMPH) || isNaN(heightFt) || angleDeg <= 0 || speedMPH <= 0 || heightFt < 0) {
+				alert("Please enter valid positive numbers.");
+				return;
+			}
 
-	  // Unit conversions
-	  const speedMPS = speedMPH * 0.44704;      // mph -> m/s
-	  const h_m = heightFt * 0.3048;            // ft  -> m
-	  const a = angleDeg * Math.PI / 180;       // deg -> rad
-	  const g = 9.81;                           // m/s^2
+			const speedMPS = speedMPH * 0.44704;
+			const h_m = heightFt * 0.3048;
+			const a = angleDeg * Math.PI / 180;
+			const g = 9.81;
+			const cosA = Math.cos(a);
+			const sinA = Math.sin(a);
+			const tanA = Math.tan(a);
+			const V0 = speedMPS;
+			const V0sq = V0 * V0;
 
-	  const cosA = Math.cos(a);
-	  const sinA = Math.sin(a);
-	  const tanA = Math.tan(a);
-	  const V0 = speedMPS;
-	  const V0sq = V0 * V0;
+			if (cosA <= 0) { alert("Angle too steep—horizontal velocity must be positive."); return; }
 
-	  if (cosA <= 0) {
-		alert("Angle too steep—horizontal velocity must be positive.");
-		return;
-	  }
+			const vX = V0 * cosA;
+			const vY = V0 * sinA;
+			const flightTime = (vY + Math.sqrt(vY * vY + 2 * g * h_m)) / g;
+			const rangeMeters = vX * flightTime;
+			const rangeFeet = rangeMeters / 0.3048;
+			const maxHeightMeters = h_m + (vY * vY) / (2 * g);
+			const maxHeightFeet = maxHeightMeters / 0.3048;
 
-	  // Components
-	  const vX = V0 * cosA;
-	  const vY = V0 * sinA;
+			function y_at_x_feet(xFeet) {
+				const x_m = xFeet * 0.3048;
+				const y_m = h_m + x_m * tanA - (g * x_m * x_m) / (2 * V0sq * cosA * cosA);
+				return y_m / 0.3048;
+			}
 
-	  // Time of flight (positive root of y(t)=0 for launch height h_m)
-	  // t = (vY + sqrt(vY^2 + 2 g h)) / g
-	  const flightTime = (vY + Math.sqrt(vY * vY + 2 * g * h_m)) / g;
+			const canvas = document.getElementById("trajectoryCanvas");
+			const ctx = canvas.getContext("2d");
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	  // Range (horizontal distance to ground)
-	  const rangeMeters = vX * flightTime;
-	  const rangeFeet = rangeMeters / 0.3048;
+			const padL = 50, padB = 50, padR = 20, padT = 20;
+			const scaleX = (canvas.width - (padL + padR)) / (rangeFeet + 5);
+			const scaleY = (canvas.height - (padT + padB)) / (maxHeightFeet + 5);
 
-	  // Max height (apex)
-	  const maxHeightMeters = h_m + (vY * vY) / (2 * g);
-	  const maxHeightFeet = maxHeightMeters / 0.3048;
+			ctx.beginPath();
+			ctx.moveTo(padL, canvas.height - padB);
+			ctx.lineTo(canvas.width - padR, canvas.height - padB);
+			ctx.moveTo(padL, canvas.height - padB);
+			ctx.lineTo(padL, padT);
+			ctx.strokeStyle = "black";
+			ctx.lineWidth = 2;
+			ctx.stroke();
 
-	  // Closed-form y(x) in meters:
-	  // y(x) = h + x*tan(a) - g*x^2 / (2 V0^2 cos^2(a))
-	  function y_at_x_feet(xFeet) {
-		const x_m = xFeet * 0.3048;
-		const y_m = h_m + x_m * tanA - (g * x_m * x_m) / (2 * V0sq * cosA * cosA);
-		return y_m / 0.3048; // -> feet
-	  }
+			ctx.fillStyle = "black";
+			ctx.font = "12px Arial";
+			for (let x = 0; x <= rangeFeet; x += 1) {
+				const cx = padL + x * scaleX;
+				ctx.beginPath();
+				ctx.moveTo(cx, canvas.height - padB + 5);
+				ctx.lineTo(cx, canvas.height - padB - 5);
+				ctx.stroke();
+				if (x % 5 === 0) ctx.fillText(x + "ft", cx - 10, canvas.height - padB + 20);
+			}
 
-	  // === Canvas drawing (step in x, using closed-form) ===
-	  const canvas = document.getElementById("trajectoryCanvas");
-	  const ctx = canvas.getContext("2d");
-	  ctx.clearRect(0, 0, canvas.width, canvas.height);
+			for (let y = 0; y <= maxHeightFeet; y += 1) {
+				const cy = canvas.height - (y * scaleY) - padB;
+				ctx.beginPath();
+				ctx.moveTo(padL - 5, cy);
+				ctx.lineTo(padL + 5, cy);
+				ctx.stroke();
+				if (y % 5 === 0) ctx.fillText(y + "ft", 10, cy + 4);
+			}
 
-	  const padL = 50, padB = 50, padR = 20, padT = 20;
-	  const scaleX = (canvas.width - (padL + padR)) / (rangeFeet + 5);
-	  const scaleY = (canvas.height - (padT + padB)) / (maxHeightFeet + 5);
+			ctx.beginPath();
+			ctx.strokeStyle = "blue";
+			ctx.lineWidth = 2;
+			const stepFeet = Math.max(0.25, rangeFeet / 400);
+			for (let xf = 0; xf <= rangeFeet; xf += stepFeet) {
+				let yft = y_at_x_feet(xf);
+				if (yft < 0) yft = 0;
+				const cx = padL + xf * scaleX;
+				const cy = canvas.height - (yft * scaleY) - padB;
+				if (xf === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+			}
+			ctx.stroke();
 
-	  // Axes
-	  ctx.beginPath();
-	  ctx.moveTo(padL, canvas.height - padB);
-	  ctx.lineTo(canvas.width - padR, canvas.height - padB); // X
-	  ctx.moveTo(padL, canvas.height - padB);
-	  ctx.lineTo(padL, padT); // Y
-	  ctx.strokeStyle = "black";
-	  ctx.lineWidth = 2;
-	  ctx.stroke();
+			document.getElementById("result").innerHTML =
+				`Max Height: ${maxHeightFeet.toFixed(2)} ft &nbsp;|&nbsp; ` +
+				`Total Distance: ${rangeFeet.toFixed(2)} ft &nbsp;|&nbsp; ` +
+				`Time of Flight: ${flightTime.toFixed(2)} s`;
 
-	  // X ticks (every 1 ft; label every 5 ft)
-	  ctx.fillStyle = "black";
-	  ctx.font = "12px Arial";
-	  for (let x = 0; x <= rangeFeet; x += 1) {
-		const cx = padL + x * scaleX;
-		ctx.beginPath();
-		ctx.moveTo(cx, canvas.height - padB + 5);
-		ctx.lineTo(cx, canvas.height - padB - 5);
-		ctx.stroke();
-		if (x % 5 === 0) ctx.fillText(x + "ft", cx - 10, canvas.height - padB + 20);
-	  }
-
-	  // Y ticks (every 1 ft; label every 5 ft)
-	  for (let y = 0; y <= maxHeightFeet; y += 1) {
-		const cy = canvas.height - (y * scaleY) - padB;
-		ctx.beginPath();
-		ctx.moveTo(padL - 5, cy);
-		ctx.lineTo(padL + 5, cy);
-		ctx.stroke();
-		if (y % 5 === 0) ctx.fillText(y + "ft", 10, cy + 4);
-	  }
-
-	  // Trajectory curve with closed-form y(x)
-	  ctx.beginPath();
-	  ctx.strokeStyle = "blue";
-	  ctx.lineWidth = 2;
-
-	  const stepFeet = Math.max(0.25, rangeFeet / 400); // smooth curve
-	  for (let xf = 0; xf <= rangeFeet; xf += stepFeet) {
-		let yft = y_at_x_feet(xf);
-		if (yft < 0) yft = 0; // clamp to ground
-		const cx = padL + xf * scaleX;
-		const cy = canvas.height - (yft * scaleY) - padB;
-		if (xf === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
-	  }
-	  ctx.stroke();
-
-	  // Summary numbers
-	  document.getElementById("result").innerHTML =
-		`Max Height: ${maxHeightFeet.toFixed(2)} ft<br>` +
-		`Total Distance: ${rangeFeet.toFixed(2)} ft<br>` +
-		`Time of Flight: ${flightTime.toFixed(2)} s`;
-
-	  // === Per-foot table (closed-form y(x)) ===
-	  const tbody = document.getElementById("dataTableBody");
-	  tbody.innerHTML = "";
-
-	  const maxWholeFeet = Math.floor(rangeFeet);
-	  for (let xf = 0; xf <= maxWholeFeet; xf += 1) {
-		let yft = y_at_x_feet(xf);
-		if (yft < 0) yft = 0;
-		const tr = document.createElement("tr");
-		tr.innerHTML = `<td>${xf * 12}</td><td>${(yft * 12).toFixed(2)}</td>`;
-		tbody.appendChild(tr);
-	  }
-
-	  // Precise landing row if range isn't an integer
-	  if (rangeFeet > maxWholeFeet) {
-		const tr = document.createElement("tr");
-		tr.innerHTML = `<td>${(rangeFeet * 12).toFixed(2)}</td><td>0.00</td>`;
-		tbody.appendChild(tr);
-	  }
-	}
-  </script>
+			const tbody = document.getElementById("dataTableBody");
+			tbody.innerHTML = "";
+			const maxWholeFeet = Math.floor(rangeFeet);
+			for (let xf = 0; xf <= maxWholeFeet; xf += 1) {
+				let yft = y_at_x_feet(xf);
+				if (yft < 0) yft = 0;
+				const tr = document.createElement("tr");
+				tr.innerHTML = `<td>${xf * 12}</td><td>${(yft * 12).toFixed(2)}</td>`;
+				tbody.appendChild(tr);
+			}
+			if (rangeFeet > maxWholeFeet) {
+				const tr = document.createElement("tr");
+				tr.innerHTML = `<td>${(rangeFeet * 12).toFixed(2)}</td><td>0.00</td>`;
+				tbody.appendChild(tr);
+			}
+		}
+	</script>
 </head>
-<body>
+<body class="helvetica" style="margin:0;">
+<div style="display:flex;min-height:100vh;">
 
-  <a href="index.html" style="display:block;margin-bottom:1rem;color:#357edd;text-decoration:none;font-size:.875rem;">&larr; All calculators</a>
-  <h2>Projectile Trajectory Calculator</h2>
-  <form onsubmit="drawTrajectory(event)">
-	<label for="speed">Speed (mph):</label>
-	<input type="number" id="speed" name="speed" step="0.1" required />
-	<br />
-	<label for="angle">Angle (*):</label>
-	<input type="number" id="angle" name="angle" step="1" required />
-	<br />
-	<label for="height">Takeoff Height (in):</label>
-	<input type="number" id="height" name="height" step="1" required />
-	<br />
-	<button type="submit">Calculate &amp; Draw</button>
-  </form>
+	<nav style="width:210px;min-width:210px;background:#111;padding:1.5rem 1rem;box-sizing:border-box;">
+		<a href="index.html" style="display:block;font-weight:700;font-size:.9rem;color:#fff;text-decoration:none;margin-bottom:1.5rem;">MTB Park Calculators</a>
+		<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.08em;margin-bottom:.4rem;">Tools</div>
+		<ul style="list-style:none;padding:0;margin:0;">
+			<li style="margin-bottom:.2rem;"><a href="circle-radius-calculator.html" class="nav-link">Circle Radius Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="trajectory-calculator.html" class="nav-link active">Trajectory Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="freehand-arc-layout.html" class="nav-link">Arc Offset Calculator</a></li>
+		</ul>
+	</nav>
 
-  <h3 id="result"></h3>
+	<main class="pa4" style="flex:1;overflow:auto;">
+		<h2 class="f2 fw6 dark-gray mt0 mb4">Trajectory Calculator</h2>
+		<form onsubmit="drawTrajectory(event)">
+			<div class="mb3">
+				<label class="db b mb1" for="speed">Speed (mph)</label>
+				<input class="dib mw4" type="number" id="speed" name="speed" step="0.1" required>
+			</div>
+			<div class="mb3">
+				<label class="db b mb1" for="angle">Launch Angle (&deg;)</label>
+				<input class="dib mw4" type="number" id="angle" name="angle" step="1" required>
+			</div>
+			<div class="mb3">
+				<label class="db b mb1" for="height">Takeoff Height (in)</label>
+				<input class="dib mw4" type="number" id="height" name="height" step="1" required>
+			</div>
+			<div class="mt3">
+				<button class="b--blue ba bg-blue bl-animate-all br2 bw1 dib hover-b--dark-blue hover-bg-dark-blue hover-white ph3 pointer pv2 white" type="submit">Calculate &amp; Draw</button>
+			</div>
+		</form>
 
-  <div class="layout">
-	<canvas id="trajectoryCanvas" width="800" height="500"></canvas>
+		<p id="result" class="f5 mt4 mb0"></p>
 
-	<div style="width: 250px">
-	  <h4>Height by Horizontal Distance</h4>
-	  <div class="table-wrap">
-		<table aria-label="Height per foot of horizontal distance">
-		  <thead>
-			<tr>
-			  <th>Distance (in)</th>
-			  <th>Height (in)</th>
-			</tr>
-		  </thead>
-		  <tbody id="dataTableBody"></tbody>
-		</table>
-	  </div>
-	  <div class="note">
-		Heights use the closed-form trajectory with launch height:
-		<span style="font-family: serif;">y(x) = h + x·tan(α) − g·x² / (2 V₀² cos²(α))</span>.
-		Final row shows exact landing distance with 0.00&nbsp;in height.
-	  </div>
-	</div>
-  </div>
+		<div class="chart-layout">
+			<canvas id="trajectoryCanvas" width="800" height="500"></canvas>
+			<div>
+				<h4 class="f5 fw6 dark-gray mt0 mb2">Height by Horizontal Distance</h4>
+				<div class="table-wrap">
+					<table aria-label="Height per foot of horizontal distance">
+						<thead>
+							<tr>
+								<th>Distance (in)</th>
+								<th>Height (in)</th>
+							</tr>
+						</thead>
+						<tbody id="dataTableBody"></tbody>
+					</table>
+				</div>
+				<p class="f7 gray mt2">Heights use closed-form trajectory with launch height: <span style="font-family:serif;">y(x) = h + x·tan(α) − g·x² / (2 V₀² cos²(α))</span>. Final row shows exact landing distance.</p>
+			</div>
+		</div>
+	</main>
 
+</div>
 </body>
 </html>

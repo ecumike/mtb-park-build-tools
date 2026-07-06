@@ -21,37 +21,54 @@
 			box-shadow: 0 2px 8px rgba(53,126,221,0.15);
 			text-decoration: none;
 		}
+		.nav-link { display:block; padding:.4rem .6rem; border-radius:3px; color:#ccc; text-decoration:none; font-size:.875rem; }
+		.nav-link:hover { background:rgba(255,255,255,0.12); color:#fff; }
+		.nav-link.active { background:#fff; color:#111; font-weight:700; }
 	</style>
 </head>
-<body class="helvetica pa4 mw8 center">
+<body class="helvetica" style="margin:0;">
+<div style="display:flex;min-height:100vh;">
 
-	<h1 class="f2 fw6 dark-gray mb1">MTB Park Calculators</h1>
-	<p class="f5 gray mt0 mb5">Tools for designing and building mountain bike park features.</p>
+	<nav style="width:210px;min-width:210px;background:#111;padding:1.5rem 1rem;box-sizing:border-box;">
+		<span style="display:block;font-weight:700;font-size:.9rem;color:#fff;margin-bottom:1.5rem;font-family:sans-serif;">MTB Park Calculators</span>
+		<div style="font-size:.7rem;font-weight:700;text-transform:uppercase;color:#666;letter-spacing:.08em;margin-bottom:.4rem;font-family:sans-serif;">Tools</div>
+		<ul style="list-style:none;padding:0;margin:0;">
+			<li style="margin-bottom:.2rem;"><a href="circle-radius-calculator.html" class="nav-link">Circle Radius Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="trajectory-calculator.html" class="nav-link">Trajectory Calculator</a></li>
+			<li style="margin-bottom:.2rem;"><a href="freehand-arc-layout.html" class="nav-link">Arc Offset Calculator</a></li>
+		</ul>
+	</nav>
 
-	<div class="flex flex-wrap nl3 nr3">
+	<main style="flex:1;padding:2rem;overflow:auto;">
+		<h1 class="f2 fw6 dark-gray mb1">MTB Park Calculators</h1>
+		<p class="f5 gray mt0 mb5">Tools for designing and building mountain bike park features.</p>
 
-		<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
-			<a href="circle-radius-calculator.html" class="tool-card flex-auto">
-				<h2 class="f4 fw6 dark-gray mt0 mb2">Circle Radius Calculator</h2>
-				<p class="f6 gray mt0 mb0">Find the radius of a circular arc from its chord length and sag (rise) depth.</p>
-			</a>
+		<div class="flex flex-wrap nl3 nr3">
+
+			<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
+				<a href="circle-radius-calculator.html" class="tool-card flex-auto">
+					<h2 class="f4 fw6 dark-gray mt0 mb2">Circle Radius Calculator</h2>
+					<p class="f6 gray mt0 mb0">Find the radius of a circular arc from its chord length and sag (rise) depth.</p>
+				</a>
+			</div>
+
+			<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
+				<a href="trajectory-calculator.html" class="tool-card flex-auto">
+					<h2 class="f4 fw6 dark-gray mt0 mb2">Projectile Trajectory Calculator</h2>
+					<p class="f6 gray mt0 mb0">Plot a rider's airborne trajectory by speed, launch angle, and takeoff height.</p>
+				</a>
+			</div>
+
+			<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
+				<a href="freehand-arc-layout.html" class="tool-card flex-auto">
+					<h2 class="f4 fw6 dark-gray mt0 mb2">Arc Offset Calculator</h2>
+					<p class="f6 gray mt0 mb0">Generate offset measurements along an arc for laying out curved features in the field.</p>
+				</a>
+			</div>
+
 		</div>
+	</main>
 
-		<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
-			<a href="trajectory-calculator.html" class="tool-card flex-auto">
-				<h2 class="f4 fw6 dark-gray mt0 mb2">Projectile Trajectory Calculator</h2>
-				<p class="f6 gray mt0 mb0">Plot a rider's airborne trajectory by speed, launch angle, and takeoff height.</p>
-			</a>
-		</div>
-
-		<div class="w-third-l w-50-m w-100 ph3 mb4 flex">
-			<a href="freehand-arc-layout.html" class="tool-card flex-auto">
-				<h2 class="f4 fw6 dark-gray mt0 mb2">Arc Offset Calculator</h2>
-				<p class="f6 gray mt0 mb0">Generate offset measurements along an arc for laying out curved features in the field.</p>
-			</a>
-		</div>
-
-	</div>
-
+</div>
 </body>
 </html>
