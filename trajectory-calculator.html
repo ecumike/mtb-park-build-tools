@@ -156,14 +156,14 @@
 		let yft = y_at_x_feet(xf);
 		if (yft < 0) yft = 0;
 		const tr = document.createElement("tr");
-		tr.innerHTML = `<td>${xf}</td><td>${yft.toFixed(2)}</td>`;
+		tr.innerHTML = `<td>${xf * 12}</td><td>${(yft * 12).toFixed(2)}</td>`;
 		tbody.appendChild(tr);
 	  }
 
 	  // Precise landing row if range isn't an integer
 	  if (rangeFeet > maxWholeFeet) {
 		const tr = document.createElement("tr");
-		tr.innerHTML = `<td>${rangeFeet.toFixed(2)}</td><td>0.00</td>`;
+		tr.innerHTML = `<td>${(rangeFeet * 12).toFixed(2)}</td><td>0.00</td>`;
 		tbody.appendChild(tr);
 	  }
 	}
@@ -196,8 +196,8 @@
 		<table aria-label="Height per foot of horizontal distance">
 		  <thead>
 			<tr>
-			  <th>Distance (ft)</th>
-			  <th>Height (ft)</th>
+			  <th>Distance (in)</th>
+			  <th>Height (in)</th>
 			</tr>
 		  </thead>
 		  <tbody id="dataTableBody"></tbody>
@@ -206,7 +206,7 @@
 	  <div class="note">
 		Heights use the closed-form trajectory with launch height:
 		<span style="font-family: serif;">y(x) = h + x·tan(α) − g·x² / (2 V₀² cos²(α))</span>.
-		Final row shows exact landing distance with 0.00&nbsp;ft height.
+		Final row shows exact landing distance with 0.00&nbsp;in height.
 	  </div>
 	</div>
   </div>
